@@ -2,18 +2,19 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 
-const passport = require("passport");
+// const passport = require("passport");
 
-const session = require("express-session");
+// const session = require("express-session");/
 const mongoose = require("mongoose");
-const mongoStore = require("connect-mongo");
+// const mongoStore = require("connect-mongo");
 
 // internel import
 
 const userRouter = require("./routes/userHandler/userRouter");
+const loginRouter = require("./routes/loginHandler/userLoginHandler");
 // user models
 
-require("./config/passport-google")
+// require("./config/passport-google")
 
 dotenv.config();
 app.use(express.json());
@@ -36,23 +37,24 @@ mongoose
   });
 
 app.use("/", userRouter);
+app.use("/loginRouter" , loginRouter);
 
 // Configure session middleware
-app.use(
-  session({
-    secret: "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    store: mongoStore.create({
-      mongoUrl: process.env.MONGDB_CONECTION,
-      collectionName: "session",
-    }),
-  })
-);
+// app.use(
+//   session({
+//     secret: "your-secret-key",
+//     resave: false,
+//     saveUninitialized: false,
+//     store: mongoStore.create({
+//       mongoUrl: process.env.MONGDB_CONECTION,
+//       collectionName: "session",
+//     }),
+//   })
+// );
 
 // Initialize Passport and restore authentication state from session
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.get("/login", (req, res) => {
   res.render("login");
@@ -69,22 +71,22 @@ app.get("/", (req, res) => {
 
 // passport google auth
 
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile"] })
-);
+// app.get(
+//   "/auth/google",
+//   passport.authenticate("google", { scope: ["profile"] })
+// );
 
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/login",
-    successRedirect: "/",
-  }),
-  function (req, res) {
-    // Successful authentication, redirect home.
-    res.redirect("/");
-  }
-);
+// app.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google", {
+//     failureRedirect: "/login",
+//     successRedirect: "/",
+//   }),
+//   function (req, res) {
+//     // Successful authentication, redirect home.
+//     res.redirect("/");
+//   }
+// );
 
 
 

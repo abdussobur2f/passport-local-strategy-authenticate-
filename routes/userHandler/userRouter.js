@@ -14,16 +14,16 @@ const password = req.body.password;
       const hasspassworsd = await bcrypt.hash(password,10);
 
       const nweUser = await new User({
-        name: req.body.name,
-        email: req.body.email,
+        username: req.body.username,
         password: hasspassworsd,
       });
 
-      const user =await nweUser.save();
+      const user = await nweUser.save();
 
    
       res.status(201).json({
-        message:"account created"
+        message:"account created",
+        user:user,
       });
  } catch (error) {
     res.status(401).json({
