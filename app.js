@@ -3,16 +3,17 @@ const app = express();
 const dotenv = require("dotenv");
 
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
+
 const session = require("express-session");
 const mongoose = require("mongoose");
 const mongoStore = require("connect-mongo");
-const bcrypt = require("bcrypt");
+
 // internel import
 
 const userRouter = require("./routes/userHandler/userRouter");
 // user models
-const User = require("./models/userModels");
+
+require("./config/passport-google")
 
 dotenv.config();
 app.use(express.json());
@@ -53,48 +54,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configure Passport to use LocalStrategy for authentication
-passport.use(
-  new LocalStrategy(
-    {
-      usernameField: "email",
-      passwordField: "password",
-    },
-    async (email, password, done) => {
-      try {
-        const user = await User.findOne({
-          email: email,
-        });
-        const validpass = await bcrypt.compare(password, user.password);
-        //  })
-        if (user && validpass) {
-          return done(null, user);
-        } else {
-          return done(null, false);
-        }
-        // Replace this with your actual user authentication logic
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-// Serialize user to store in session
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-// Deserialize user from session
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error, false);
-  }
-});
-
 app.get("/login", (req, res) => {
   res.render("login");
 });
@@ -108,18 +67,39 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 
-// Since we are using the passport.authenticate() method, we should be redirected no matter what
-app.post(
-  "/login",
-  passport.authenticate("local", {
+// passport google auth
+
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile"] })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
     failureRedirect: "/login",
-    failureMessage: "somethin wrong",
-    successRedirect: "/profile",
+    successRedirect: "/",
   }),
-  (req, res, next) => {
-    if (err) next(err);
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/");
   }
 );
+
+
+
+// // Since we are using the passport.authenticate() method, we should be redirected no matter what
+// app.post(
+//   "/login",
+//   passport.authenticate("local", {
+//     failureRedirect: "/login",
+//     failureMessage: "somethin wrong",
+//     successRedirect: "/profile",
+//   }),
+//   (req, res, next) => {
+//     if (err) next(err);
+//   }
+// );
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server started on ${process.env.PORT}`);
